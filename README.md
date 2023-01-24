@@ -2,8 +2,8 @@ Ce dossier contient le **tutoriel learnr** pour le cours "Textométrie avec R".
 
 Il est calibré pour 
 
-- **10h30 de cours, en 3 séances (3 *3h30)** si non suivi d'une initiation à R,
-- **6h en 2 séances sinon**.
+- **10h30 de cours, en 3 séances de 3h30** si non précédé d'une initiation à R,
+- **6h en 2 séances de 3h sinon**.
 
 Le document **textometrie_ministereco.Rmd** comprend les commandes utilisées pour scraper et mettre en forme le corpus. Il génère notamment les jeux de données suivants:
 
