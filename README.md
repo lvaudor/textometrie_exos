@@ -12,4 +12,4 @@ Le document **textometrie_ministereco.Rmd** comprend les commandes utilisées po
 - **tib_textes**: les métadonnées, associées au texte auquel on a appliqué un pré-traitement visant à identifier les mots propres
 - **tib_lemmes**: les lemmes (issus de la tokenisation de tib_textes et jointure avec un lexique)
 
-Les données ne sont pas directement incluses dans le repo github car trop volumineuses. Elles sont accessibles en suivant les liens ci-dessus.
+Les données ne sont pas directement incluses dans le repo github car trop volumineuses. Elles sont accessibles en suivant les liens listés [ici](https://perso.ens-lyon.fr/lise.vaudor/datasets/ministereco/).
