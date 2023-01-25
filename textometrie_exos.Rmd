@@ -854,9 +854,6 @@ tib_docs=readr::read_csv2("data/ministereco_tib_docs.csv") %>%
 tib_lemmes=left_join(tib_lemmes,tib_docs %>% select(doc,ministre,date,month,year))
 ```
 
-
-(Séance 3)
-
 ### 5_1) Fréquences par partie
 
 On définit une partition de notre jeu de données en deux périodes, pré et post covid. Examinez le code suivant:
@@ -917,6 +914,10 @@ head(tib_spec, n=15)
 ```
 
 ```{r exo5_2-check}
+grade_this({
+  pass_if_equal(message="Ici la partition par la variable covid est aussi une partition par le temps... Les spécificités peuvent être aussi liées à cela plutôt qu'à la situation sanitaire!...")
+  fail(hint = TRUE)
+})
 ```
 
 ### 5_3) Barplot des spécificités
@@ -953,6 +954,13 @@ ggplot(tibg_spec,
   ylab("lemme")
 ```
 
+```{r exo5_3-check}
+grade_this({
+  fail_if_code_feedback(hint = TRUE)
+  pass("Oui. Notez que l'évaluation pour les graphiques est minimale -le code tourne, donc ça passe-. Donc charge à vous de voir si le graphique correspond bien à l'attendu ;-).")
+})
+```
+
 
 ### 5_4) Occurrence d'un champ lexical
 
@@ -986,77 +994,189 @@ ggplot(tib_ferroviaire,
 
 ### 5-5) Structural Topic Modelling
 
-```{r}
+On repart des résultats du STM réalisée dans le Descriptoire (`topic_model`).
+Essayez de résumer les thématiques (en vous basant sur le résultat de `summary(topic_model)` affichée dans le Descriptoire).
+
+```{r part5_5-setup}
+library(tidyverse)
+library(tibble)
+```
+
+
+```{r exo5_5a, exercise=TRUE, exercise.lines=20,exercise.setup="part5_5-setup"}
+tib_topics=bind_rows(
+  tibble_row(topic_digest="biodiversité",topic=_),
+  tibble_row(topic_digest="logistique presse",topic=11),
+  tibble_row(topic_digest="énergie/rénovation/logement",topic=_),
+  tibble_row(topic_digest="déchets",topic=10),
+  tibble_row(topic_digest="collectivités/territoires",topic=_),
+  tibble_row(topic_digest="objectifs/réformes",topic=1),
+  tibble_row(topic_digest="projets/investissements/lois",topic=_),
+  tibble_row(topic_digest="risques",topic=14),
+  tibble_row(topic_digest="changement climatique",topic=_),
+  tibble_row(topic_digest="réunion/délégation/acteurs",topic=_),
+  tibble_row(topic_digest="conditions sanitaires/accès presse",topic=2),
+  tibble_row(topic_digest="économie/entreprise/filière",topic=_),
+  tibble_row(topic_digest="transports/mobilité",topic=_),
+  tibble_row(topic_digest="circulation automobile",topic=_),
+  tibble_row(topic_digest="France/Europe/International", topic=_)
+)
+```
+
+```{r exo5_5a-solution}
+tib_topics=bind_rows(
+  tibble_row(topic_digest="biodiversité",topic=13),
+  tibble_row(topic_digest="logistique presse",topic=11),
+  tibble_row(topic_digest="énergie/rénovation/logement",topic=5),
+  tibble_row(topic_digest="déchets",topic=10),
+  tibble_row(topic_digest="collectivités/territoires",topic=9),
+  tibble_row(topic_digest="objectifs/réformes",topic=1),
+  tibble_row(topic_digest="projets/investissements/lois",topic=8),
+  tibble_row(topic_digest="risques",topic=14),
+  tibble_row(topic_digest="changement climatique",topic=7),
+  tibble_row(topic_digest="réunion/délégation/acteurs",topic=6),
+  tibble_row(topic_digest="conditions sanitaires/accès presse",topic=2),
+  tibble_row(topic_digest="économie/entreprise/filière",topic=3),
+  tibble_row(topic_digest="transports/mobilité",topic=12),
+  tibble_row(topic_digest="circulation automobile",topic=15),
+  tibble_row(topic_digest="France/Europe/International", topic=4)
+)
+```
+
+```{r exo5_5a-check}
+grade_this({
+  fail_if_code_feedback(hint = TRUE)
+  pass_if_equal(message="Tout-à-fait. Cette reformulation des thématiques peut s'avérer extrêmement utile pour des analyses postérieures. ")
+})
+
+```
+
+On repart de la table de métadonnées `tib_meta` et on récupère les résultats du STM réalisée dans le Descriptoire (`topic_model`).
+
+```{r part5_5b-setup, echo=FALSE}
 library(tidyverse)
 library(tidytext)
-tib_meta=readr::read_csv2("data/ministereco_tib_lemmes.csv")
-topic_model=readRDS("data/ministereco_topic_model.csv")
+tib_meta=readr::read_csv2("data/ministereco_tib_meta.csv")
+topic_model=readRDS("data/ministereco_topic_model.RDS")
+```
+
+Modifiez le code ci-dessous pour **associer les thématiques** (et leur probabilité associée) **à chacun des documents**.
+
+*L'objet `topic_model` fait déjà partie de l'environnement, et les packages `tidyverse` et `tidytext` ont été chargés.*
+
+```{r exo5_5b, exercise=TRUE, exercise.lines=5, exercise.setup="part5_5b-setup"}
+tib_gamma <- ___(_____, matrix = "____")
+head(tib_gamma)
+```
+
+```{r exo5_5b-solution}
+tib_gamma <- tidy(topic_model, matrix = "gamma") 
+head(tib_gamma)
 ```
 
 
-<!-- Attribuons maintenant une thématique à chacun des documents en se basant sur la probabilité `gamma`: -->
+```{r exo5_5b-check}
+grade_this({
+  pass_if_equal(message="La fonction tidy va nous permettre d'exploiter les résultats du STM relativement facilement dans le cadre du tidyverse...")
+  fail(hint = TRUE)
+})
+```
 
-<!-- ```{r tib_docs_topics} -->
-<!-- tib_gamma_max=tib_gamma %>%  -->
-<!--   group_by(document) %>%  -->
-<!--   slice_max(n=1,gamma) %>%  -->
-<!--   mutate(doc=paste0("doc",document)) %>%  -->
-<!--   select(-document) %>%  -->
-<!--   mutate(topic=as.factor(topic)) %>%  -->
-<!--   ungroup() -->
+On va ensuite ajouter une étiquette de thème correspondant aux termes les plus probables et **rajouter les nouveaux descripteurs "topic" et "topic_digest" à la table des métadonnées**.
 
-<!-- tib_docs_thematiques =tib_docs %>%  -->
-<!--   left_join(tib_gamma_max, by="doc") %>%  -->
-<!--   mutate(month=lubridate::ymd(date)) -->
-
-<!-- head(tib_docs_thematiques) -->
-<!-- ``` -->
-### 5_6) Analyse factorielle des correspondances
-
-Réalisons l'analyse factorielle des correspondances en partitionnant le corpus en fonction de l'année.
-
-```{r part5_5-setup, echo=TRUE}
-# lemmes hautement spécifiques d'une partie ou d'une autre
-lemmes_spec=mixr::tidy_specificities(tib_lemmes,lemma,year) %>% 
-  arrange(desc(spec)) %>% 
-  filter(spec>10) %>%
-  pull(lemma) %>%
-  unique()
-# table avec lemmes hautement spécifiques
-tib_hspec=tib_lemmes %>% 
-  filter(lemma %in% lemmes_spec)
-# table lexicale
-tib_lex=table(tib_hspec$lemma,tib_hspec$year)
+```{r,echo=FALSE}
+tib_meta=readr::read_csv2("data/ministereco_tib_meta.csv")
+topic_model=readRDS("data/ministereco_topic_model.RDS")
+tib_gamma<- tidy(topic_model, matrix = "gamma")
+tib_topics=bind_rows(
+  tibble_row(topic_digest="biodiversité",topic=13),
+  tibble_row(topic_digest="logistique presse",topic=11),
+  tibble_row(topic_digest="énergie/rénovation/logement",topic=5),
+  tibble_row(topic_digest="déchets",topic=10),
+  tibble_row(topic_digest="collectivités/territoires",topic=9),
+  tibble_row(topic_digest="objectifs/réformes",topic=1),
+  tibble_row(topic_digest="projets/investissements/lois",topic=8),
+  tibble_row(topic_digest="risques",topic=14),
+  tibble_row(topic_digest="changement climatique",topic=7),
+  tibble_row(topic_digest="réunion/délégation/acteurs",topic=6),
+  tibble_row(topic_digest="conditions sanitaires/accès presse",topic=2),
+  tibble_row(topic_digest="économie/entreprise/filière",topic=3),
+  tibble_row(topic_digest="transports/mobilité",topic=12),
+  tibble_row(topic_digest="circulation automobile",topic=15),
+  tibble_row(topic_digest="France/Europe/International", topic=4)
+)
 ```
 
 
-```{r exo5_5, exercise=TRUE, exercise.lines=15, exercise.setup="part5_5-setup"}
+```{r, echo=TRUE}
+tib_meta_topic=tib_meta %>% 
+  left_join(tib_gamma %>% mutate(doc=paste0("doc",document)),
+            by=c("doc")) %>% 
+  left_join(tib_topics, by="topic")
+```
+
+On peut dès lors utiliser ce nouveau descripteur pour le croiser à d'autres informations... Ici par exemple on regarde la probabilité de la thématique x sommée pour chaque du ministre.
+
+```{r plot_topics_ministre, echo=TRUE}
+topics_ministre=tib_meta_topic %>% 
+  group_by(topic,topic_digest,ministre) %>% 
+  summarise(sgamma=sum(gamma))
+ggplot(topics_ministre,aes(x=topic,y=sgamma,fill=topic_digest))+
+  geom_bar(stat="identity")+
+  facet_wrap(facets=vars(ministre))
+```
+
+
+### 5_6) Analyse factorielle
+
+Reprenons les résultats du STM. Les documents sont caractérisés par les valeurs gamma associées à telles ou telles thématiques. On va **quantifier les thématiques abordées en fonction du ministre**.
+
+```{r topics_ministre, echo=TRUE}
+topics_ministre=tib_meta_topic %>%
+  group_by(ministre) %>% 
+  mutate(ndoc=n()) %>% 
+  group_by(topic_digest,ministre,ndoc) %>% 
+  summarise(sgamma=sum(gamma)/ndoc,.groups="drop") %>% 
+  unique() %>% 
+  na.omit()
+```
+
+On a appliqué une forme de **normalisation** en divisant la somme des valeurs gamma par le nombre total de documents rédigés sous le mandat de chaque ministre.
+
+En remettant ces résultats sous forme d'une matrice, avec en ligne les ministres, et en colonne les thématiques, on obtient un jeu de données que l'on peut tenter d'**interpréter via une analyse factorielle** (ici, une ACP).
+
+```{r ACP, echo=TRUE}
+tib_ACP=tidyr::pivot_wider(id_cols=ministre,
+                           topics_ministre,
+                           values_from=sgamma,
+                           names_from=topic_digest) %>% 
+  as.data.frame() %>% 
+  column_to_rownames("ministre")
+head(tib_ACP)
+```
+
+**Réalisons l'ACP** et traçons les **graphiques associés**:
+
+```{r plot_ACP,echo=TRUE}
 library(FactoMineR)
-result_CA=CA(tib_lex, graph=FALSE)
+result_PCA=PCA(tib_ACP, graph=FALSE)
 
 library(factoextra)
-fviz_screeplot(result_CA, addlabels = TRUE, ylim = c(0, 50))
-```
-
-```{r exo5_5-solution}
-library(FactoMineR)
-result_CA=CA(tib_lex, graph=FALSE)
-
-library(factoextra)
-fviz_screeplot(result_CA, addlabels = TRUE, ylim = c(0, 50))
+fviz_screeplot(result_PCA, addlabels = TRUE, ylim = c(0, 50))
+fviz_pca_biplot(result_PCA, repel=TRUE)
 ```
 
 
-
-```{r setup_CA,echo=FALSE}
-library(FactoMineR)
-result_CA=CA(tib_lex, graph=FALSE)
-
-library(factoextra)
-fviz_screeplot(result_CA, addlabels = TRUE, ylim = c(0, 50))
+```{r interpretation_ACP}
+question("Cette représentation suggère que (réponse multiple, cocher les propositions vraies):",
+    answer("Barbara Pompili et Nicolas Hulot sont proches en termes de thématiques abordées"),
+    answer("La thématique réunion/délégation/acteurs est souvent abordée en lien avec la thématique collectivités/territoires", correct=TRUE),
+    answer("Le changement climatique est souvent abordé de pair avec la biodiversité."),
+    answer("Elisabeth Borne aborde souvent la question transports/mobilité."),
+    answer("Barbara Pompili aborde souvent la question énergie/rénovation/logement",correct=TRUE),
+    answer("Elisabeth Borne aborde souvent la question de France/Europe/International", correct=TRUE),
+    incorrect="Humph,non, raté.",
+    correct="Oui! Gardez à l'esprit qu'une ACP est une représentation imparfaite d'un jeu de données mais elle peut donner des pistes d'interprétation...",
+    allow_retry=TRUE
+)
 ```
-
-```{r plot_CA,echo=TRUE}
-fviz_ca_biplot(result_CA, repel=TRUE)
-```
-
